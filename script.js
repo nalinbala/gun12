@@ -855,7 +855,6 @@ function applyDistrictForces() {
     .alpha(1)
     .restart();
 }
-
 function applyMonthForces() {
   clearLabels();
   restoreGenderView();
@@ -895,11 +894,15 @@ function applyMonthForces() {
   const mobile = getMobileState();
   const cols = mobile ? 3 : 6;
   const colWidth = width / (cols + 1);
-  const rowHeight = mobile ? 250 : 400;
+
+  // INCREASED THE VERTICAL GAP BETWEEN DOTS AND TEXT
+  const rowHeight = mobile ? 250 : 350;
+  const dotBaseY = mobile ? 140 : 350; // Center of the gravity pull
+  const labelBaseY = mobile ? 230 : 490; // Pushed safely below the expanded dots
 
   months.forEach((month, i) => {
     const xPos = ((i % cols) + 1) * colWidth;
-    const yPos = Math.floor(i / cols) * rowHeight + 200;
+    const yPos = Math.floor(i / cols) * rowHeight + labelBaseY;
 
     const group = d3.select("#labels");
     group
@@ -941,7 +944,7 @@ function applyMonthForces() {
       d3
         .forceY((d) => {
           const i = months.indexOf(d.month);
-          return Math.floor(i / cols) * rowHeight + 150;
+          return Math.floor(i / cols) * rowHeight + dotBaseY;
         })
         .strength(0.8)
     )
