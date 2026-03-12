@@ -51,7 +51,8 @@ function renderIntro() {
 const svg = d3.select("#visual-stage");
 const width = 1920;
 const height = 1080;
-const radius = 18;
+// Make circles almost twice as large on mobile devices!
+const radius = window.innerWidth < 768 ? 32 : 18;
 
 // Colors matching your palette
 const COLOR_MALE = "#3E5C76";
@@ -713,6 +714,11 @@ function applyAgeForces() {
 /* ========================================= */
 
 // This helper checks the width every time a scroll happens
+
+/* ========================================= */
+/* ADAPTIVE D3 FORCE FUNCTIONS - RESIZED     */
+/* ========================================= */
+
 const getMobileState = () => window.innerWidth < 768;
 
 function applyGenderForces() {
@@ -720,18 +726,17 @@ function applyGenderForces() {
   restoreGenderView();
   const mobile = getMobileState();
 
-  // Desktop: Side-by-side | Mobile: Vertical Stack
-  const xM = mobile ? width / 2 : width / 3;
-  const yM = mobile ? 350 : height / 2;
-  const xF = mobile ? width / 2 : (width / 3) * 2;
-  const yF = mobile ? 750 : height / 2;
+  // Side-by-side layout for both Desktop AND Mobile!
+  const xM = mobile ? width * 0.35 : width / 3;
+  const xF = mobile ? width * 0.75 : (width / 3) * 2;
+  const yBase = mobile ? 450 : height / 2;
 
-  addSvgLabel("Male (54)", xM, yM + 200);
-  addSvgLabel("Female (6)", xF, yF + 200);
+  addSvgLabel("Male (54)", xM, yBase + (mobile ? 260 : 200));
+  addSvgLabel("Female (6)", xF, yBase + (mobile ? 260 : 200));
 
   simulation
     .force("x", d3.forceX((d) => (d.gender === "M" ? xM : xF)).strength(0.1))
-    .force("y", d3.forceY((d) => (d.gender === "M" ? yM : yF)).strength(0.1))
+    .force("y", d3.forceY(yBase).strength(0.1))
     .alpha(1)
     .restart();
 }
@@ -741,23 +746,19 @@ function applyMotivationForces() {
   restoreGenderView();
   const mobile = getMobileState();
 
-  const xC = mobile ? width / 2 : width / 3;
-  const yC = mobile ? 350 : height / 2;
-  const xP = mobile ? width / 2 : (width / 3) * 2;
-  const yP = mobile ? 750 : height / 2;
+  const xC = mobile ? width * 0.35 : width / 3;
+  const xP = mobile ? width * 0.75 : (width / 3) * 2;
+  const yBase = mobile ? 450 : height / 2;
 
-  addSvgLabel("Organised Crime (46)", xC, yC + 250);
-  addSvgLabel("Personal/Other (14)", xP, yP + 200);
+  addSvgLabel("Organised Crime (46)", xC, yBase + (mobile ? 280 : 250));
+  addSvgLabel("Personal/Other (14)", xP, yBase + (mobile ? 280 : 200));
 
   simulation
     .force(
       "x",
       d3.forceX((d) => (d.motive === "crime" ? xC : xP)).strength(0.1)
     )
-    .force(
-      "y",
-      d3.forceY((d) => (d.motive === "crime" ? yC : yP)).strength(0.1)
-    )
+    .force("y", d3.forceY(yBase).strength(0.1))
     .alpha(1)
     .restart();
 }
@@ -785,19 +786,23 @@ function applyDistrictForces() {
   const mobile = getMobileState();
   const cols = mobile ? 3 : 5;
   const colWidth = width / (cols + 1);
-  const rowHeight = mobile ? 300 : 0;
+
+  // Adjusted spacing to fit the larger mobile dots
+  const rowHeight = mobile ? 250 : 0;
+  const dotBaseY = mobile ? 180 : height / 2 - 50;
+  const labelBaseY = mobile ? 310 : height / 2 + 180;
 
   districts.forEach((dist, i) => {
     let xPos, yPos;
     if (mobile) {
       xPos = ((i % cols) + 1) * colWidth;
-      yPos = Math.floor(i / cols) * rowHeight + 250;
+      yPos = Math.floor(i / cols) * rowHeight + labelBaseY;
     } else {
       xPos = d3
         .scalePoint()
         .domain(districts)
         .range([150, width - 150])(dist);
-      yPos = height / 2 + 180;
+      yPos = labelBaseY;
     }
 
     const group = d3.select("#labels");
@@ -847,14 +852,15 @@ function applyDistrictForces() {
         .forceY((d) => {
           const i = districts.indexOf(d.district);
           return mobile
-            ? Math.floor(i / cols) * rowHeight + 200
-            : height / 2 - 50;
+            ? Math.floor(i / cols) * rowHeight + dotBaseY
+            : dotBaseY;
         })
         .strength(0.8)
     )
     .alpha(1)
     .restart();
 }
+
 function applyMonthForces() {
   clearLabels();
   restoreGenderView();
@@ -895,10 +901,10 @@ function applyMonthForces() {
   const cols = mobile ? 3 : 6;
   const colWidth = width / (cols + 1);
 
-  // INCREASED THE VERTICAL GAP BETWEEN DOTS AND TEXT
+  // Adjusted spacing to fit the larger mobile dots
   const rowHeight = mobile ? 250 : 350;
-  const dotBaseY = mobile ? 140 : 350; // Center of the gravity pull
-  const labelBaseY = mobile ? 230 : 490; // Pushed safely below the expanded dots
+  const dotBaseY = mobile ? 180 : 350;
+  const labelBaseY = mobile ? 310 : 490;
 
   months.forEach((month, i) => {
     const xPos = ((i % cols) + 1) * colWidth;
@@ -951,6 +957,7 @@ function applyMonthForces() {
     .alpha(1)
     .restart();
 }
+
 /* ========================================= */
 /* STRICT LEGEND SWAPPER                     */
 /* ========================================= */
