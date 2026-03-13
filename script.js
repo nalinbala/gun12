@@ -719,6 +719,10 @@ function applyAgeForces() {
 /* ADAPTIVE D3 FORCE FUNCTIONS - RESIZED     */
 /* ========================================= */
 
+/* ========================================= */
+/* ADAPTIVE D3 FORCE FUNCTIONS - RESIZED     */
+/* ========================================= */
+
 const getMobileState = () => window.innerWidth < 768;
 
 function applyGenderForces() {
